@@ -1,4 +1,5 @@
 import requests
+import pdb
 
 data = """TOM!"
     No answer.
@@ -24,7 +25,25 @@ data = """TOM!"
     shouted:
     "Y-o-u-u TOM!"""; 
 
+def genHeaders():
+  return {
+      "Host": "capi.grammarly.com",
+      "User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:66.0) Gecko/20100101 Firefox/66.0",
+      "Accept":"*/*",
+      "Accept-Language":"en-US,en;q=0.5",
+      "Accept-Encoding":"gzip, deflate, br",
+      "Sec-WebSocket-Version":"13",
+      "Origin":"moz-extension://1543dcbd-db1d-c043-be06-53f1ac20e6ef",
+      "Sec-WebSocket-Extensions":"permessage-deflate",
+      "Sec-WebSocket-Key":"SS3zJbe2IjlUBUy/jCuvkA==",
+      "Connection":"keep-alive, Upgrade",
+      "Cookie":"gnar_containerId=lfky8hb42qii082; grauth=AABGUBpUbqpxaM7cLVcQhkdY2FEb4xNLIb45XI1XZrgwqAHHtJf0pK8WZlbC3ol7w9NHYQqLUi5NEFsy; csrf-token=AABGUHL0N3ZMobFpPOTvz5dTk8cCcbrvFI1h8g; funnelType=free; browser_info=FIREFOX:66:COMPUTER:SUPPORTED:FREEMIUM:MAC_OS_X:MAC_OS_X; redirect_location=eyJ0eXBlIjoiIiwibG9jYXRpb24iOiJodHRwczovL3d3dy5ncmFtbWFybHkuY29tL3NpZ251cD9icmVhZGNydW1icz10cnVlJnV0bV9zb3VyY2U9ZmlyZWZveCZwYWdlPWZyZWUmZXh0ZW5zaW9uX2luc3RhbGw9dHJ1ZSZ1dG1fbWVkaXVtPXN0b3JlIn0=; firefox_freemium=true; _ga=GA1.2.650690555.1555234454; _gid=GA1.2.539082346.1555234454; ga_clientId=650690555.1555234454; _gcl_au=1.1.1340797246.1555234454; _fbp=fb.1.1555234461054.265805239; experiment_groups=",
+      "Pragma":"no-cache",
+      "Cache-Control":"no-cache",
+      "Upgrade":"websocket",
+      }
+
 if __name__ == "__main__":
-  headers = dict()
+  headers = genHeaders()
   res = requests.post("https://capi.grammarly.com/api/check", headers=headers, data=data )
   print(res)
