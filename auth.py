@@ -6,6 +6,7 @@ import base64
 import json
 import websocket
 import pdb
+import sys
 
 # sample cookies extracted from  requests
 cookies = {
@@ -141,8 +142,6 @@ def buildPlagHdrs( cook, contID, origin="moz-extension://6adb0179-68f0-aa4f-8666
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'
 }
 
-data = "Should catch the misspelled word."
-
 def buildInitialMsg():
   return {
   "type": 'initial',
@@ -180,9 +179,86 @@ def buildOTMessage():
   "rev": '0',
   "id": '0',
   "action": 'submit_ot'
-}
+  }
+
+allowedGroups = [ 'Punctuation', 'Spelling' ]
+def retrieveGrammarlyResponses( ws ):
+   errorResponses = []
+   while True:
+      resp = ws.recv_data()
+      jsonResp = json.loads(resp[1])
+      if jsonResp.get( 'action' ) == 'finished':
+         break
+      if jsonResp.get( 'group' ) and jsonResp.get( 'group' ) in allowedGroups:
+         if jsonResp.get( 'highlightText' ):
+            errorResponses.append( jsonResp )
+   return errorResponses
+
+class GrammarlyError():
+   def __init__(self, errorResponse):
+      self.columnBegin = errorResponse.get( 'highlightBegin' )
+      self.columnEnd = errorResponse.get( 'highlightEnd' )
+      self.errorType = errorResponse.get( 'group' )
+      self.replacements = errorResponse.get( 'replacements' )
+      self.offendingText = errorResponse.get( 'text' )
+   
+   def __str__( self ):
+      attrs = vars(self)
+      return (', '.join("%s: '%s'" % item for item in attrs.items() ))
+
+   def __setattr__( self, name, value ):
+      if value is not None:
+         self.__dict__[name] = str( value )
+
+   # %f:%l:%sc:%ec: %m
+   # f: file
+   # l: line number
+   # sc: start column
+   # ec: end column
+   # m: error message
+   def toFormat( self ):
+      def checkReplacement( replacement ):
+         if replacement == '[]':
+            return ' '
+         else :
+            return replacement
+
+      formattedString = '' + file_name
+      formattedString += ':' + str( line_number )
+      formattedString += ':' + self.columnBegin
+      formattedString += ':' + self.columnEnd
+      errorMessage = ( ': ' + self.errorType + ' error: The offending text is \'' + 
+                       self.offendingText + '\'.' )
+      if self.replacements:
+         errorMessage += ( ' Replace \'' + self.offendingText + '\' with \'' + 
+                           checkReplacement( self.replacements ) + '\'.' )
+      return formattedString + errorMessage
+
+'''
+data = ( 'A session holding a lock on the running datastore also locks the CLI '
+    'configuration lock. If this session now faces an error during a '
+    'transaction Commit, it might have impacted communication on the EAPI '
+    'session. If the EAPI session closed due to an error, the CLI lock would '
+    'be released, so it\'s important for the client to know that the lock was '
+    'lost. In the absence of a way to tell this to the client, we close the '
+    'connection.' )
+'''
+
+data = ( 'This is the begvinning of the text.\n' 
+         'This line has two  spaces.\n'
+         'I accidently typed this this twice.\n'
+         'no uppercase\n' )
+
+file_name = "testfile.py"
+line_number = 34
 
 if __name__ == "__main__":
+  
+  stdinData = ''
+  for line in sys.stdin:
+     stdinData += line
+  data = stdinData
+
   auth = buildAuth()
 
   cookieStr = genFurtherHeaders( auth )
@@ -192,16 +268,11 @@ if __name__ == "__main__":
   req = requests.post('https://capi.grammarly.com/api/check', headers=plagHdrs, data=data )
   url = "wss://capi.grammarly.com/freews"
   ws = ws = websocket.WebSocket()
-  print(plagHdrs)
   ws.connect(url, header=plagHdrs, origin="moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b" )
   ws.send(json.dumps(buildInitialMsg()))
   ws.send(json.dumps(buildOTMessage()))
-  a = ws.recv_data()
-  b = ws.recv_data()
-  c = ws.recv_data()
-  d = json.loads(c[1])
-  # string.replace(u'\xa0', u' ')
-  print(d)
-  pdb.set_trace()
-  print(req.content)
+  responses = retrieveGrammarlyResponses( ws )
+  errorResponses = [ GrammarlyError( error ) for error in responses ]
+  for error in errorResponses:
+      print error.toFormat()
 
