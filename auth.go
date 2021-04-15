@@ -45,6 +45,21 @@ var buildInitialMsg = map[string]interface{}{
 	"sid":           "0",
 }
 
+// This is a test config that you can edit and drop directly into "config.Header =" 
+var testHeadersFromPython = map[string][]string{
+	"Origin":           []string{"moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b"},
+	"X-Client-Version": []string{"8.852.2307"},
+	"Accept-Language":  []string{"en-GB,en-US;q=0.9,en;q=0.8"},
+	"Accept-Encoding":  []string{"gzip, deflate, br"},
+	"X-Client-Type":    []string{"extension-firefox"},
+	"X-Container-Id":   []string{"aaukbtnoho4o302"},
+	"User-Agent":       []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"},
+	"Host":             []string{"capi.grammarly.com"},
+	"Cookie":           []string{"firefox_freemium=true; grauth=AABJLPGf_MK7rGO8a-rHC3E3Vqhkx9EpFqyCoHSKx7WnGFjb7W1mPgg1_4WBkOlFNAgw8Usr8QODsbua; funnelType=free; redirect-location=eyJ0eXBlIjogIiIsICJsb2NhdGlvbiI6ICJodHRwczovL3d3dy5ncmFtbWFybHkuY29tL2FmdGVyX2luc3RhbGxfcGFnZT9leHRlbnNpb25faW5zdGFsbD10cnVlJnV0bV9tZWRpdW09c3RvcmUmdXRtX3NvdXJjZT1maXJlZm94In0=; csrf-token=AABJLAyQUhfM8XN5RxV8YFcvwSMPKGTu+T8gLw; gnar_containerId=aaukbtnoho4o302; browser_info=FIREFOX:67:COMPUTER:SUPPORTED:FREEMIUM:MAC_OS_X:MAC_OS_X; "},
+	"Pragma":           []string{"no-cache"},
+	"Cache-Control":    []string{"no-cache"},
+}
+
 var buildOTMsg = map[string]interface{}{
 	"ch":     []string{"+0:0:Should catch the misspelled word.:0"},
 	"rev":    '0',
@@ -149,7 +164,7 @@ func main() {
 	fmt.Println("________________________________")
 	fmt.Println(mapToString(extCookies))
 	fmt.Println("________________________________")*/
-	plagHeaders := genPlagHeaders(mapToString(extCookies), extCookies["gnar_containerId"])
+	//plagHeaders := genPlagHeaders(mapToString(extCookies), extCookies["gnar_containerId"])
 	config, err := websocket.NewConfig("wss://capi.grammarly.com/freews", "moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b")
 	if err != nil {
 		log.Fatalf("error creating websocket config; %v", err)
@@ -158,7 +173,8 @@ func main() {
 	fmt.Printf("%+v\n", config)
 	fmt.Println("________________________________")
 
-	config.Header = plagHeaders
+	//config.Header = plagHeaders
+	config.Header = testHeadersFromPython
 	fmt.Println("CONFIG")
 	fmt.Printf("%+v\n", config)
 	fmt.Println("________________________________")
