@@ -116,15 +116,6 @@ def genCookieStr( cookies ):
      out = out + key + '=' + val + '; '
    return out
 
-
-def extractAuthCookies( cookies ):
-  return {
-    "gnar_containerId" : "aaukbtnoho4o302",
-    "grauth" : cookies.get("grauth"),
-    "csrf-token" : cookies.get("csrf-token"),
-    "redirect-location" : genRedirectLocation(),   
-      }
-
 def buildPlagHdrs( cook, contID, origin="moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b", host="auth.grammarly.com" ):
   return {
     'Accept-Encoding': 'gzip, deflate, br',
@@ -165,6 +156,8 @@ def buildInitialMsg():
 }
 def buildAuth( origin="moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b", host="capi.grammarly.com", authURL ="" ):
   stdHeaders = genReqStdHeaders( host, origin )
+  print(stdHeaders)
+  print(type(stdHeaders))
   uniqueAuthHeaders = genUniqueAuthHeafers("")
   stdHeaders.update(uniqueAuthHeaders)
 
@@ -184,16 +177,18 @@ def buildOTMessage():
 
 if __name__ == "__main__":
   auth = buildAuth()
-
+  print("here")
   cookieStr = genFurtherHeaders( auth )
     
   plagHdrs = buildPlagHdrs( cookieStr, auth["gnar_containerId"], host='capi.grammarly.com')
 
-  req = requests.post('https://capi.grammarly.com/api/check', headers=plagHdrs, data=data )
+  #req = requests.post('https://capi.grammarly.com/api/check', headers=plagHdrs, data=data )
   url = "wss://capi.grammarly.com/freews"
   ws = ws = websocket.WebSocket()
   print(plagHdrs)
+  print("-----------------------------------------------------------------")
   ws.connect(url, header=plagHdrs, origin="moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b" )
+  #ws.connect(url, origin="moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b" )
   ws.send(json.dumps(buildInitialMsg()))
   ws.send(json.dumps(buildOTMessage()))
   a = ws.recv_data()
@@ -202,6 +197,6 @@ if __name__ == "__main__":
   d = json.loads(c[1])
   # string.replace(u'\xa0', u' ')
   print(d)
-  pdb.set_trace()
-  print(req.content)
+  print("-----------------------------------------------------------------")
+  #print(req.content)
 
