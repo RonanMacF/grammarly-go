@@ -83,10 +83,14 @@ func extractAuthCookies(cookies []*http.Cookie) (map[string]string, error) {
 	}
 	redirectEnc := base64.StdEncoding.EncodeToString([]byte(jsonRedirect))
 	authCookies["redirect-location"] = redirectEnc
+	// Below is value python produces...
+	//authCookies["redirect-location"] = "eyJ0eXBlIjogIiIsICJsb2NhdGlvbiI6ICJodHRwczovL3d3dy5ncmFtbWFybHkuY29tL2FmdGVyX2luc3RhbGxfcGFnZT9leHRlbnNpb25faW5zdGFsbD10cnVlJnV0bV9tZWRpdW09c3RvcmUmdXRtX3NvdXJjZT1maXJlZm94In0="
 	return authCookies, nil
 }
 
 func genPlagHeaders(cookie, containerID string) map[string][]string {
+	reqStdHeader["Host"] = "capi.grammarly.com"
+	reqStdHeader["Accept-Language"] = "en-GB,en-US;q=0.9,en;q=0.8"
 	reqStdHeader["Cookie"] = cookie
 	reqStdHeader["X-Container-Id"] = containerID
 	reqStdHeader["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"
@@ -140,11 +144,11 @@ func main() {
 	for name, value := range furtherHeaders {
 		extCookies[name] = value
 	}
-	fmt.Println("________________________________")
+	/*fmt.Println("________________________________")
 	fmt.Printf("%+v\n", extCookies)
 	fmt.Println("________________________________")
 	fmt.Println(mapToString(extCookies))
-	fmt.Println("________________________________")
+	fmt.Println("________________________________")*/
 	plagHeaders := genPlagHeaders(mapToString(extCookies), extCookies["gnar_containerId"])
 	config, err := websocket.NewConfig("wss://capi.grammarly.com/freews", "moz-extension://6adb0179-68f0-aa4f-8666-ae91f500210b")
 	if err != nil {
@@ -155,6 +159,7 @@ func main() {
 	fmt.Println("________________________________")
 
 	config.Header = plagHeaders
+	fmt.Println("CONFIG")
 	fmt.Printf("%+v\n", config)
 	fmt.Println("________________________________")
 
