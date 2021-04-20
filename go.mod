@@ -1,4 +1,4 @@
-module nvim-grammarly
+module grammarly-go
 
 go 1.16
 
