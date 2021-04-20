@@ -1,12 +1,36 @@
 package transport
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"strings"
 )
 
 type Config struct {
-	Dialect[]string`mapstructure:"dialect"`
+	Dialects[]string`mapstructure:"dialect"`
+}
+
+func (c Config) VerifyConfig() error {
+	if err := verifyDialect(c.Dialects); err != nil{
+		return err
+	}
+	return nil
+}
+
+func verifyDialect(dialects []string)error{
+	allowedDialects := map[string]struct{}{
+		"american" : {},
+		"british" :{},
+		"canadian": {},
+		"australian":{},
+	}
+	for _, d := range dialects{
+		if _, ok := allowedDialects[strings.ToLower(d)]; !ok{
+			return fmt.Errorf("invalid dialect %s, allowed dialects are american, british, " +
+				"canadian and australian", d)
+		}
+	}
+	return nil
 }
 
 func (c Config) GenerateConfigMessage() map[string]interface{} {
@@ -22,7 +46,7 @@ func (c Config) GenerateConfigMessage() map[string]interface{} {
 			"sentence_variety_check",
 			"free_occasional_premium_alerts",
 		},
-		"dialect":       strings.Join(c.Dialect, " | "),
+		"dialect":       strings.Join(c.Dialects, " | "),
 		"clientVersion": "14.924.2437",
 		"extDomain":     "keep.google.com",
 		"action":        "start",
