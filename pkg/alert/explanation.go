@@ -39,6 +39,29 @@ func genConfusedExplanation(title string, replacements []string)string{
 	return fmt.Sprintf("%s: replace with %s", title, replacementsStr)
 }
 
+func genWordinessExplanation(explanation string)string{
+	return normalizeString(explanation)
+}
+
+func genPunctuationExplanation(pname string)string{
+	return "missing comma"
+}
+
+func genBasicPunctExplanation(pname string) string {
+	if strings.Contains(pname, "NoCommaWithAppeal") || strings.Contains(pname, "NoCommaWithIntrPhrase") {
+		return "missing comma"
+	}
+	return ""
+
+}
+
+func genModifiersExplanation(pname string, text string) string{
+	if strings.Contains(pname, "QualifierBeforeAbsoluteAdj"){
+		return fmt.Sprintf("Consider removing the qualifier from '%s'", text)
+	}
+	return ""
+}
+
 func normalizeSlice(strs []string)string{
 	var sb strings.Builder
 	for _, s := range strs{

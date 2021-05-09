@@ -3,17 +3,16 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
-	"flag"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"grammarly-go/pkg/alert"
+	"grammarly-go/pkg/flags"
+	"grammarly-go/pkg/transport"
 	"io/ioutil"
 	"net/url"
-	"nvim-grammarly/alert"
-	"nvim-grammarly/pkg/transport"
 	"os"
 	"regexp"
 	"strings"
@@ -40,13 +39,6 @@ var buildOTMsg = map[string]interface{}{
 
 }
 
-type flags struct {
-	configPath string
-	filePath string
-	logPath string
-	logLevel int
-}
-
 func createBuildOTMsg(message string) map[string]interface{} {
 	chMsg := fmt.Sprintf("+0:0:%s:0", message)
 	return map[string]interface{}{
@@ -57,28 +49,9 @@ func createBuildOTMsg(message string) map[string]interface{} {
 	}
 }
 
-var (
-	configPath = flag.String("configPath",  "/Users/ronan/nvim-grammarly/sampleConfig.toml" ,
-		"path to the directory containing the configuration file")
-	filePath = flag.String("filePath", "/Users/ronan/tmp.txt",  "path to the file being checked")
-	logPath = flag.String("logPath", "/Users/ronan/grammarly-go/grammarly-go.log",  "path to the file to print logs")
-	logLevel = flag.Uint("logLevel", 4,  "log level")
-)
-
-func parseFlags() (*flags, error) {
-	flag.Parse()
-	if *filePath == ""{
-		return nil, errors.New("no file passed, pass file using -filePath flag")
-	}
-	return &flags{
-		configPath: *configPath,
-		filePath:   *filePath,
-		logPath: *logPath,
-	}, nil
-}
 
 func setConfigDefaults(){
-	viper.SetDefault("ContentDir", "content")
+	viper.SetDefault("Dialects", []string{"american"})
 }
 
 
@@ -109,9 +82,10 @@ func printAlerts(filePath string, alerts []*alert.Response){
 
 		exp := alert.GenExplanation()
 		if exp == ""{
+			//fmt.Printf("%#v\n",alert)
 			continue
 		}
-		msg := fmt.Sprintf("%s:%d:%d: %s\n", splitFilePath[len(splitFilePath)-1], alert.LineNum, alert.HighlightBegin, exp)
+		msg := fmt.Sprintf("%s:%d:%d: %s\n", splitFilePath[len(splitFilePath)-1], alert.LineNum, alert.HighlightBegin + 1, exp)
 		fmt.Print(msg)
 	}
 }
@@ -175,19 +149,20 @@ func getLogLevel(level int)log.Level{
 }
 
 func main() {
-	flags, err := parseFlags()
+	flags, err := flags.Parse()
 	if err != nil{
 		os.Exit(1)
 	}
 
 	// read configuration from config file if present
-	conf, err := transport.LoadConfig(flags.configPath)
+	setConfigDefaults()
+	conf, err := transport.LoadConfig(flags.ConfigPath)
 	if err != nil{
 		fmt.Printf("unexpected error reading config file, got %s\n", err)
 	}
 
 	// open or create log file with default log level being info level (L4)
-	logFile, err := os.OpenFile(flags.logPath, os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0755)
+	logFile, err := os.OpenFile(flags.LogPath, os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0755)
 	if err != nil {
 		fmt.Println("error opening logfile")
 	}
@@ -199,10 +174,12 @@ func main() {
 	})
 	defer log.Exit(0)
 	log.SetOutput(logFile)
-	logLevel := getLogLevel(flags.logLevel)
+	logLevel := getLogLevel(flags.LogLevel)
 	log.SetLevel(logLevel)
+	log.SetReportCaller(true)
 
-	content, err := ioutil.ReadFile(flags.filePath)
+
+	content, err := ioutil.ReadFile(flags.FilePath)
 	if err != nil {
 		log.Fatalf("error reading file; %v", err)
 	}
@@ -231,8 +208,8 @@ func main() {
 	}
 
 	alerts := readAlerts(c)
-	alerts = processLineNum(*filePath, alerts)
-	printAlerts(*filePath, alerts)
+	alerts = processLineNum(flags.FilePath, alerts)
+	printAlerts(flags.FilePath, alerts)
 }
 
 

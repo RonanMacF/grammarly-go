@@ -34,6 +34,7 @@ func verifyDialect(dialects []string)error{
 }
 
 func (c Config) GenerateConfigMessage() map[string]interface{} {
+	fmt.Println(strings.Join(c.Dialects, " | "))
 	return map[string]interface{}{
 		"type":            "initial",
 		"docid":           "1234",
@@ -43,10 +44,10 @@ func (c Config) GenerateConfigMessage() map[string]interface{} {
 			"free_clarity_alerts",
 			"readability_check",
 			"filler_words_check",
-			"sentence_variety_check",
 			"free_occasional_premium_alerts",
 		},
 		"dialect":       strings.Join(c.Dialects, " | "),
+		//"dialect":       "american",
 		"clientVersion": "14.924.2437",
 		"extDomain":     "keep.google.com",
 		"action":        "start",

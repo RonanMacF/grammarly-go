@@ -24,6 +24,10 @@ func (r *Response) GenExplanation()  string{
 	case "Fragment": return genFragmentExplanation(r.PnameQualifier)
 	case "AccidentallyConfused": return genConfusedExplanation(r.Title, r.Replacements)
 	case "CommonlyConfused": return genConfusedExplanation(r.Title, r.Replacements)
+	case "Wordiness": return genWordinessExplanation(r.Explanation)
+	case "CompPunct": return genPunctuationExplanation(r.Pname)
+	case "BasicPunct": return genBasicPunctExplanation(r.Pname)
+	case "Modifiers": return genModifiersExplanation(r.Pname, r.Text)
 	}
 	return ""
 }
