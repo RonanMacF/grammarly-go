@@ -21,4 +21,4 @@ jobs:
             package: 'cmd/grammarly-go'
             name: 'program'
             compress: 'true'
-            dest: 'dist'
+            dest: '../../dist'
